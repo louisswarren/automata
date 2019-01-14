@@ -1,0 +1,2 @@
+# automata
+Automata in Agda
