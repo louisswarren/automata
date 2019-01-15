@@ -8,6 +8,9 @@ data Fin : ℕ → Set where
   zero : ∀{n} → Fin (suc n)
   suc  : ∀{n} → Fin n       → Fin (suc n)
 
+¬FinZero : ¬(Fin zero)
+¬FinZero ()
+
 _≟_ : ∀{n} → Decidable≡ (Fin n)
 zero  ≟ zero  = yes refl
 zero  ≟ suc y = no (λ ())
@@ -68,3 +71,16 @@ compare (suc x) (suc y) with compare x y
 compare (suc x) (suc y) | less x≺y         = less (sx≼sy x≺y)
 compare (suc x) (suc y) | same (x≼y , y≼x) = same (sx≼sy x≼y , sx≼sy y≼x)
 compare (suc x) (suc y) | more y≺x         = more (sx≼sy y≺x)
+
+
+searchFin : ∀{n} {A : Set} {P : A → Set} → Decidable P → (f : Fin n → A) → Dec (Σ _ λ x → P (f x))
+searchFin {zero}  p f = no λ x → ¬FinZero (fst x)
+searchFin {suc n} p f with p (f zero)
+searchFin {suc n} p f | yes Pf0 = yes (zero , Pf0)
+searchFin {suc n} p f | no ¬Pf0 with searchFin p (λ x → f (suc x))
+searchFin {suc n} p f | no ¬Pf0 | yes (x , Pfx) = yes (suc x , Pfx)
+searchFin {suc n} p f | no ¬Pf0 | no ¬Pfs       = no ¬Pf
+  where
+    ¬Pf : _
+    ¬Pf (zero  , Pf0) = ¬Pf0 Pf0
+    ¬Pf (suc x , Pfs) = ¬Pfs (x , Pfs)
