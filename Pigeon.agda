@@ -18,7 +18,7 @@ slice f ¬zeroSing x | same fsx≈f0 = ⊥-elim (¬zeroSing zeroSing)
 liftSliceSing : ∀{n m} {f : Fin (suc n) → Fin (suc m)}
                 → (¬zeroSing : ¬(SingPoint f zero))
                 → Singular (slice f ¬zeroSing) → Singular f
-liftSliceSing = ?
+liftSliceSing ¬zS (x , singpoint y x≢y gx≢gy) = {!   !}
 
 
 isZeroSingular : ∀{n m} → (f : Fin (suc n) → Fin m) → Dec (SingPoint f zero)
@@ -40,4 +40,20 @@ pigeon : ∀{n m} → m < n → (f : Fin n → Fin m) → Singular f
 pigeon {suc n} {zero}  (sn≤sm m<n) f = ⊥-elim (¬FinZero (f zero))
 pigeon {suc n} {suc m} (sn≤sm m<n) f with isZeroSingular f
 ... | yes zeroSing = zero , zeroSing
-... | no ¬zeroSing = liftSliceSing ¬zeroSing (pigeon m<n (slice f ¬zeroSing))
+... | no ¬zeroSing with pigeon m<n (slice f ¬zeroSing)
+...                | x , singpoint y x≢y gx≡gy = sing
+  where
+    g : Fin n → Fin m
+    g = slice f ¬zeroSing
+    X : Fin (suc n)
+    X = suc x
+    Y : Fin (suc n)
+    Y = suc y
+    sing : Singular f
+    sing with compare (f X) (f zero) | compare (f Y) (f zero)
+    ...  | less fX≼f0 | less fY≼f0 = {!   !}
+    ...  | more f0≈fX | more f0≼fY = {!   !}
+    ...  | same fX≈f0 | _          = ⊥-elim (¬zeroSing (singpoint X (λ ()) (≈to≡ (≈sym fX≈f0))))
+    ...  | _          | same fY≈f0 = ⊥-elim (¬zeroSing (singpoint Y (λ ()) (≈to≡ (≈sym fY≈f0))))
+    ...  | less fX≼f0 | more f0≼fY = {!   !}
+    ...  | more f0≈fX | less fY≼f0 = {!   !}
