@@ -11,6 +11,12 @@ data Fin : ℕ → Set where
 ¬FinZero : ¬(Fin zero)
 ¬FinZero ()
 
+-- Type signature should be
+--   suc≡ : ∀{n} {x y : Fin n} → suc x ≡ suc y → x ≡ y
+-- but agda can't figure out which suc it is, despite knowing the type of x
+suc≡ : ∀{n} {x y : Fin n} → _≡_ {_} {Fin (suc n)} (suc x) (suc y) → x ≡ y
+suc≡ refl = refl
+
 _≟_ : ∀{n} → Decidable≡ (Fin n)
 zero  ≟ zero  = yes refl
 zero  ≟ suc y = no (λ ())
@@ -28,6 +34,10 @@ data _≼_ : ∀{n m} → Fin n → Fin m → Set where
 
 0≼x′ : ∀{n} {x : Fin n} → zero {zero} ≼ x
 0≼x′ = 0≼x
+
+≼refl : ∀{n} {x : Fin n} → x ≼ x
+≼refl {_} {zero}  = 0≼x
+≼refl {_} {suc x} = sx≼sy ≼refl
 
 ≼trans : ∀{k n m} {x : Fin k} {y : Fin n} {z : Fin m} → x ≼ y → y ≼ z → x ≼ z
 ≼trans 0≼x y≼z = 0≼x
@@ -49,6 +59,9 @@ x ≈ y = (x ≼ y) × (y ≼ x)
 ≈to≡ (0≼x , 0≼x) = refl
 ≈to≡ (sx≼sy x≼y , sx≼sy y≼x) with ≈to≡ (x≼y , y≼x)
 ≈to≡ (sx≼sy x≼y , sx≼sy y≼x) | refl = refl
+
+≡to≈ : ∀{n} {x : Fin n} {y : Fin n} → x ≡ y → x ≈ y
+≡to≈ refl = ≼refl , ≼refl
 
 toℕ : ∀{n} → Fin n → ℕ
 toℕ zero = zero
@@ -73,6 +86,13 @@ projdrop : ∀{n} {x : Fin (suc n)} {y : Fin (suc n)} → x ≺ y → toℕ x < 
 projdrop {zero}  (sx≼sy {_} {_} {_} {()} _)
 projdrop {suc n} (sx≼sy 0≼x)         = sn≤sm 0≤n
 projdrop {suc n} (sx≼sy (sx≼sy x≼y)) = sn≤sm (projdrop (sx≼sy x≼y))
+
+projinv≡ : ∀{n k} {x y : Fin n} {a : toℕ x < k} {b : toℕ y < k} → proj x a ≡ proj y b → x ≡ y
+projinv≡ {n} {k} {x} {y} {a} {b} eq with proj≈ x a | proj≈ y b
+... | x≈projx | y≈projy = ≈to≡ (≈trans x≈projx (≈trans projx≈projy (≈sym y≈projy)))
+  where
+    projx≈projy : proj x a ≈ proj y b
+    projx≈projy = ≡to≈ eq
 
 prec : ∀{n m} → (x : Fin (suc n)) → zero {m} ≺ x → Fin n
 prec (suc y) (sx≼sy _) = y
