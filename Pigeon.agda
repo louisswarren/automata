@@ -51,9 +51,9 @@ pigeon {suc n} {suc m} (sn≤sm m<n) f with isZeroSingular f
     Y = suc y
     sing : Singular f
     sing with compare (f X) (f zero) | compare (f Y) (f zero)
-    ...  | less fX≼f0 | less fY≼f0 = X , singpoint Y (λ eq → x≢y (suc≡ eq)) (projinv≡ gx≡gy)
-    ...  | more f0≈fX | more f0≼fY = X , singpoint Y (λ eq → x≢y (suc≡ eq)) {!   !}
+    ...  | less fX≺f0 | less fY≺f0 = X , singpoint Y (λ eq → x≢y (suc≡ eq)) (projinv≡ gx≡gy)
+    ...  | more f0≺fX | more f0≺fY = X , singpoint Y (λ eq → x≢y (suc≡ eq)) (precinv≡ gx≡gy)
     ...  | same fX≈f0 | _          = ⊥-elim (¬zeroSing (singpoint X (λ ()) (≈to≡ (≈sym fX≈f0))))
     ...  | _          | same fY≈f0 = ⊥-elim (¬zeroSing (singpoint Y (λ ()) (≈to≡ (≈sym fY≈f0))))
-    ...  | less fX≼f0 | more f0≼fY = {!   !}
-    ...  | more f0≈fX | less fY≼f0 = {!   !}
+    ...  | less fX≺f0 | more f0≺fY = {!   !}
+    ...  | more f0≺fX | less fY≺f0 = {!   !}

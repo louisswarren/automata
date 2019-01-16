@@ -17,6 +17,9 @@ data Fin : ℕ → Set where
 suc≡ : ∀{n} {x y : Fin n} → _≡_ {_} {Fin (suc n)} (suc x) (suc y) → x ≡ y
 suc≡ refl = refl
 
+≡suc : ∀{n} {x y : Fin n} → x ≡ y → _≡_ {_} {Fin (suc n)} (suc x) (suc y)
+≡suc refl = refl
+
 _≟_ : ∀{n} → Decidable≡ (Fin n)
 zero  ≟ zero  = yes refl
 zero  ≟ suc y = no (λ ())
@@ -99,6 +102,13 @@ prec (suc y) (sx≼sy _) = y
 
 precinv : ∀{n m} → (x : Fin (suc n)) → (nz : zero {m} ≺ x) → suc (prec x nz) ≡ x
 precinv (suc x) (sx≼sy nz) = refl
+
+precinv≡ : ∀{n m k} {x y : Fin (suc n)} {a : zero {m} ≺ x} {b : zero {k} ≺ y} → prec x a ≡ prec y b → x ≡ y
+precinv≡ {n} {m} {k} {x} {y} {a} {b} eq with precinv x a | precinv y b
+... | spx≡x | spy≡y = ≡trans (≡sym spx≡x) (≡trans spx≡spy spy≡y)
+  where
+    spx≡spy : suc (prec x a) ≡ suc (prec y b)
+    spx≡spy = ≡suc eq
 
 
 data Compare : ∀{n m} → Fin n → Fin m → Set where
