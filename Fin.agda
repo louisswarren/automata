@@ -26,11 +26,29 @@ data _≼_ : ∀{n m} → Fin n → Fin m → Set where
   0≼x   : ∀{n m} {x : Fin m}                     → zero {n} ≼ x
   sx≼sy : ∀{n m} {x : Fin n} {y : Fin m} → x ≼ y → suc x    ≼ suc y
 
+0≼x′ : ∀{n} {x : Fin n} → zero {zero} ≼ x
+0≼x′ = 0≼x
+
+≼trans : ∀{k n m} {x : Fin k} {y : Fin n} {z : Fin m} → x ≼ y → y ≼ z → x ≼ z
+≼trans 0≼x y≼z = 0≼x
+≼trans (sx≼sy x≼y) (sx≼sy y≼z) = sx≼sy (≼trans x≼y y≼z)
+
 _≺_ : ∀{n m} → Fin n → Fin m → Set
 x ≺ y = suc x ≼ y
 
 _≈_ : ∀{n m} → Fin n → Fin m → Set
 x ≈ y = (x ≼ y) × (y ≼ x)
+
+≈sym : ∀{n m} {x : Fin n} {y : Fin m} → x ≈ y → y ≈ x
+≈sym (x≼y , y≼x) = y≼x , x≼y
+
+≈trans : ∀{k n m} {x : Fin k} {y : Fin n} {z : Fin m} → x ≈ y → y ≈ z → x ≈ z
+≈trans (x≼y , y≼x) (y≼z , z≼y) = ≼trans x≼y y≼z , ≼trans z≼y y≼x
+
+≈to≡ : ∀{n} {x : Fin n} {y : Fin n} → x ≈ y → x ≡ y
+≈to≡ (0≼x , 0≼x) = refl
+≈to≡ (sx≼sy x≼y , sx≼sy y≼x) with ≈to≡ (x≼y , y≼x)
+≈to≡ (sx≼sy x≼y , sx≼sy y≼x) | refl = refl
 
 toℕ : ∀{n} → Fin n → ℕ
 toℕ zero = zero
@@ -50,6 +68,11 @@ proj≈ {zero} x ()
 proj≈ {suc k} zero    (sn≤sm lt) = 0≼x , 0≼x
 proj≈ {suc k} (suc x) (sn≤sm lt) with proj≈ x lt
 proj≈ {suc k} (suc x) (sn≤sm lt) | x≼y , y≼x = sx≼sy x≼y , sx≼sy y≼x
+
+projdrop : ∀{n} {x : Fin (suc n)} {y : Fin (suc n)} → x ≺ y → toℕ x < n
+projdrop {zero}  (sx≼sy {_} {_} {_} {()} _)
+projdrop {suc n} (sx≼sy 0≼x)         = sn≤sm 0≤n
+projdrop {suc n} (sx≼sy (sx≼sy x≼y)) = sn≤sm (projdrop (sx≼sy x≼y))
 
 prec : ∀{n m} → (x : Fin (suc n)) → zero {m} ≺ x → Fin n
 prec (suc y) (sx≼sy _) = y
