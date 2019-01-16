@@ -14,6 +14,13 @@ slice f ¬zeroSing x | same fsx≈f0 = ⊥-elim (¬zeroSing zeroSing)
     zeroSing : SingPoint f zero
     zeroSing = singpoint (suc x) (λ ()) (≈to≡ (≈sym fsx≈f0))
 
+
+liftSliceSing : ∀{n m} {f : Fin (suc n) → Fin (suc m)}
+                → (¬zeroSing : ¬(SingPoint f zero))
+                → Singular (slice f ¬zeroSing) → Singular f
+liftSliceSing = ?
+
+
 isZeroSingular : ∀{n m} → (f : Fin (suc n) → Fin m) → Dec (SingPoint f zero)
 isZeroSingular {zero} f = no ¬trivSing
   where
@@ -28,10 +35,9 @@ isZeroSingular {suc n} f | no  notFound    = no ¬zeroSing
     ¬zeroSing (singpoint zero sep sing)    = sep refl
     ¬zeroSing (singpoint (suc y) sep sing) = notFound (y , sing)
 
+
 pigeon : ∀{n m} → m < n → (f : Fin n → Fin m) → Singular f
-pigeon {zero} {m} () f
-pigeon {suc n} {zero} m<n f with f zero
-pigeon {suc n} {zero} m<n f | ()
-pigeon {suc n} {suc m} m<n f with isZeroSingular f
-...                          | yes zeroSing = zero , zeroSing
-...                          | no ¬zeroSing = {!   !}
+pigeon {suc n} {zero}  (sn≤sm m<n) f = ⊥-elim (¬FinZero (f zero))
+pigeon {suc n} {suc m} (sn≤sm m<n) f with isZeroSingular f
+... | yes zeroSing = zero , zeroSing
+... | no ¬zeroSing = liftSliceSing ¬zeroSing (pigeon m<n (slice f ¬zeroSing))
