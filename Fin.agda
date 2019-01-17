@@ -49,6 +49,10 @@ data _≼_ : ∀{n m} → Fin n → Fin m → Set where
 _≺_ : ∀{n m} → Fin n → Fin m → Set
 x ≺ y = suc x ≼ y
 
+≺to≢ : ∀{n} {x y : Fin n} → x ≺ y → x ≢ y
+≺to≢ {_} {zero}  ()          refl
+≺to≢ {_} {suc x} (sx≼sy x≺y) refl = ≺to≢ x≺y refl
+
 _≈_ : ∀{n m} → Fin n → Fin m → Set
 x ≈ y = (x ≼ y) × (y ≼ x)
 
@@ -57,6 +61,9 @@ x ≈ y = (x ≼ y) × (y ≼ x)
 
 ≈trans : ∀{k n m} {x : Fin k} {y : Fin n} {z : Fin m} → x ≈ y → y ≈ z → x ≈ z
 ≈trans (x≼y , y≼x) (y≼z , z≼y) = ≼trans x≼y y≼z , ≼trans z≼y y≼x
+
+≈suc : ∀{n m} {x : Fin n} {y : Fin m} → x ≈ y → suc x ≈ suc y
+≈suc (x≼y , y≼x) = sx≼sy x≼y , sx≼sy y≼x
 
 ≈to≡ : ∀{n} {x : Fin n} {y : Fin n} → x ≈ y → x ≡ y
 ≈to≡ (0≼x , 0≼x) = refl
@@ -103,8 +110,8 @@ prec (suc y) (sx≼sy _) = y
 precinv : ∀{n m} → (x : Fin (suc n)) → (nz : zero {m} ≺ x) → suc (prec x nz) ≡ x
 precinv (suc x) (sx≼sy nz) = refl
 
-precinv≡ : ∀{n m k} {x y : Fin (suc n)} {a : zero {m} ≺ x} {b : zero {k} ≺ y} → prec x a ≡ prec y b → x ≡ y
-precinv≡ {n} {m} {k} {x} {y} {a} {b} eq with precinv x a | precinv y b
+precinv≡ : ∀{n m k} {x y : Fin (suc n)} → (a : zero {m} ≺ x) → (b : zero {k} ≺ y) → prec x a ≡ prec y b → x ≡ y
+precinv≡ {n} {m} {k} {x} {y} a b eq with precinv x a | precinv y b
 ... | spx≡x | spy≡y = ≡trans (≡sym spx≡x) (≡trans spx≡spy spy≡y)
   where
     spx≡spy : suc (prec x a) ≡ suc (prec y b)
@@ -121,9 +128,9 @@ compare zero    zero    = same (0≼x , 0≼x)
 compare zero    (suc y) = less (sx≼sy 0≼x)
 compare (suc x) zero    = more (sx≼sy 0≼x)
 compare (suc x) (suc y) with compare x y
-compare (suc x) (suc y) | less x≺y         = less (sx≼sy x≺y)
-compare (suc x) (suc y) | same (x≼y , y≼x) = same (sx≼sy x≼y , sx≼sy y≼x)
-compare (suc x) (suc y) | more y≺x         = more (sx≼sy y≺x)
+compare (suc x) (suc y) | less x≺y = less (sx≼sy x≺y)
+compare (suc x) (suc y) | same x≈y = same (≈suc x≈y)
+compare (suc x) (suc y) | more y≺x = more (sx≼sy y≺x)
 
 
 searchFin : ∀{n} {A : Set} {P : A → Set} → Decidable P → (f : Fin n → A) → Dec (Σ _ λ x → P (f x))
